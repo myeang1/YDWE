@@ -2,38 +2,31 @@ local loader = {}
 	
 loader.load = function(path)
 	if global_config:get_integer("ThirdPartyPlugin.EnableDotNetSupport", 1) ~= 1 then
-		log.warn('failed: diable')
-		return false
+		return false, 'disable'
 	end
 	
 	require "dotnet"
 	if not dotnet.initialized then
-		log.error('failed: not support')
-		return false
+		return false, 'not support'
 	end
 	
 	local obj = dotnet:load(path, 'WEInit')
 	if not obj then
-		log.error('failed: load failed')
-		return false, 
+		return false, 'load failed'
 	end
 	if obj:error_code() ~= 0 then
-		log.error(string.format('failed: load failed(%08X)',  obj:error_code()))
-		return false
+		return false, string.format('load failed(%08X)',  obj:error_code())
 	end
 	
 	local result, msg = obj:call('begin')
 	if result == nil then
 		if msg then
-			log.error('failed: call failed(' .. msg .. ')')
-			return false
+			return false, 'call failed(' .. msg .. ')'
 		else
-			log.error('failed: call failed(unknown)')
-			return false
+			return false, 'call failed(unknown)'
 		end
 	elseif result ~= 0 then
-		log.error(string.format('failed: call failed(%08X)',  result))
-		return false
+		return false, string.format('call failed(%08X)',  result)
 	end
 	
 	return true
